@@ -67,7 +67,9 @@ library
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.19.0.0
+    build-depends:    
+        base ^>=4.19.0.0,
+        servant
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -91,6 +93,7 @@ executable AFP-Project-CoursesOverview
     -- Other library packages from which modules are imported.
     build-depends:
         base ^>=4.19.0.0,
+        servant,
         AFP-Project-CoursesOverview
 
     -- Directories containing source files.
