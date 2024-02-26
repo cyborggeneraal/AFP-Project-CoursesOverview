@@ -1,8 +1,8 @@
 module Main where
 
-import qualified MyLib (someFunc)
+import ApiType(app)
+import Network.Wai.Handler.Warp
 
 main :: IO ()
 main = do
-  putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+  run 8081 app

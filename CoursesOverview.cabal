@@ -58,7 +58,9 @@ library
     import:           warnings
 
     -- Modules exported by the library.
-    exposed-modules:  MyLib
+    exposed-modules:  
+        MyLib,
+        ApiType
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -69,7 +71,11 @@ library
     -- Other library packages from which modules are imported.
     build-depends:    
         base ^>=4.19.0.0,
-        servant
+        servant-server,
+        text,
+        time,
+        aeson,
+        wai
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -94,7 +100,8 @@ executable CoursesOverview
     build-depends:
         base ^>=4.19.0.0,
         servant,
-        CoursesOverview
+        CoursesOverview,
+        warp
 
     -- Directories containing source files.
     hs-source-dirs:   app
