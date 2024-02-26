@@ -92,7 +92,7 @@ executable CoursesOverview
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.19.1.0,
+        base ^>=4.19.0.0,
         servant,
         CoursesOverview
 
@@ -126,5 +126,5 @@ test-suite CoursesOverview-test
 
     -- Test dependencies.
     build-depends:
-        base ^>=4.19.1.0,
+        base ^>=4.19.0.0,
         CoursesOverview
