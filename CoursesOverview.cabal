@@ -60,7 +60,8 @@ library
     -- Modules exported by the library.
     exposed-modules:  
         MyLib,
-        ApiType
+        ApiType,
+        ApiCourses
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -75,7 +76,8 @@ library
         text,
         time,
         aeson,
-        wai
+        wai,
+        bytestring
 
     -- Directories containing source files.
     hs-source-dirs:   src
