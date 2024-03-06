@@ -37,6 +37,11 @@ data Course = Course
 
 instance ToJSON Course
 
+instance ToSchema Course
+
+swaggerHandler :: Handler Swagger
+swaggerHandler = return $ toSwagger coursesAPI
+
 dummyCourses :: [Course]
 dummyCourses =
     [ Course { term = 1
@@ -123,11 +128,8 @@ getPrereqsHandler courseId =
         courseNotFoundError         = err404 { errBody = pack $ "No course with ID " ++ show courseId ++ " was found!" }
         prerequisiteNotFoundError   = err503 { errBody = pack $ "No prerequisites exist for course with ID: " ++ show courseId }
 
-coursesSwagger :: Swagger
-coursesSwagger = toSwagger coursesAPI
-
 server :: Server API
-server = return coursesSwagger :<|> getCoursesHandler :<|> getCourseHandler :<|> getPrereqsHandler
+server = swaggerHandler :<|> getCoursesHandler :<|> getCourseHandler :<|> getPrereqsHandler
 
 coursesApi :: Proxy API
 coursesApi = Proxy
