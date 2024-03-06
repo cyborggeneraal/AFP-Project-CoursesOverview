@@ -13,3 +13,8 @@ Idea:
 Stijn: Type definitions
 Alex: Function for types
 Martin: URL endpoints
+
+Week 11
+Martin: Elm Visualize the information. Start with core features.
+Alex: Servant swagger for documentation including behavior that is expected from endpoints in for example status codes, working on functionality
+Stijn: Status report and finalizing types
