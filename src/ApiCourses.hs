@@ -5,16 +5,25 @@
 module ApiCourses where
 
 import Servant
+import Servant.Swagger
 import GHC.Generics
 
 import Data.Aeson
+import Data.Swagger
 import Data.List (find)
 import Data.ByteString.Lazy.Char8 (pack)
+
+coursesAPI :: Proxy CoursesAPI
+coursesAPI = Proxy
 
 type CoursesAPI =
   "courses" :> Get '[JSON] [Course]                   
   :<|> "courses" :> Capture "courseID" Int :> Get '[JSON] Course
   :<|> "courses" :> Capture "courseID" Int :> "prereq" :> Get '[JSON] [Course]
+
+type SwaggerAPI = "API" :> Get '[JSON] Swagger
+
+type API = SwaggerAPI :<|> CoursesAPI
 
 data Course = Course
     {
@@ -114,11 +123,13 @@ getPrereqsHandler courseId =
         courseNotFoundError         = err404 { errBody = pack $ "No course with ID " ++ show courseId ++ " was found!" }
         prerequisiteNotFoundError   = err503 { errBody = pack $ "No prerequisites exist for course with ID: " ++ show courseId }
 
+coursesSwagger :: Swagger
+coursesSwagger = toSwagger coursesAPI
 
-server :: Server CoursesAPI
-server = getCoursesHandler :<|> getCourseHandler :<|> getPrereqsHandler
+server :: Server API
+server = return coursesSwagger :<|> getCoursesHandler :<|> getCourseHandler :<|> getPrereqsHandler
 
-coursesApi :: Proxy CoursesAPI
+coursesApi :: Proxy API
 coursesApi = Proxy
 
 appCourses :: Application

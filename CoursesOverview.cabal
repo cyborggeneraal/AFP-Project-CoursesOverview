@@ -71,13 +71,15 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:    
-        base ^>=4.19.0.0,
+        base ^>= 4.19.0.0,
         servant-server,
         text,
         time,
         aeson,
         wai,
-        bytestring
+        bytestring,
+        servant-swagger,
+        swagger2
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -100,7 +102,7 @@ executable CoursesOverview
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.19.0.0,
+        base ^>= 4.19.0.0,
         servant,
         CoursesOverview,
         warp
@@ -135,5 +137,5 @@ test-suite CoursesOverview-test
 
     -- Test dependencies.
     build-depends:
-        base ^>=4.19.0.0,
+        base ^>= 4.19.0.0,
         CoursesOverview
