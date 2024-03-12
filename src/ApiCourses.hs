@@ -1,20 +1,17 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module ApiCourses where
 
 import Servant
-import GHC.Generics
-
-import Data.Aeson
 import Data.List (find)
+import GHC.Generics
+import Data.Aeson
 import Data.ByteString.Lazy.Char8 (pack)
-
-type CoursesAPI =
-  "courses" :> Get '[JSON] [Course]                   
-  :<|> "courses" :> Capture "courseID" Int :> Get '[JSON] Course
-  :<|> "courses" :> Capture "courseID" Int :> "prereq" :> Get '[JSON] [Course]
+import Network.Wai.Middleware.Cors
 
 data Course = Course
     {
@@ -27,6 +24,17 @@ data Course = Course
     } deriving (Eq, Show, Generic)
 
 instance ToJSON Course
+
+data Prerequisite = Prerequisite
+    {
+        pCourseID :: Int,
+        prerequisiteID :: Int
+    } deriving (Eq, Show, Generic)
+
+type CoursesAPI =
+  "courses" :> Get '[JSON] [Course]                   
+  :<|> "courses" :> Capture "courseID" Int :> Get '[JSON] Course
+  :<|> "courses" :> Capture "courseID" Int :> "prereq" :> Get '[JSON] [Course]
 
 dummyCourses :: [Course]
 dummyCourses =
@@ -67,14 +75,6 @@ getCourseHandler courseId = do
         Just course             -> return course
 
     where courseNotFoundError   = err404 { errBody = pack $ "No course with ID " ++ show courseId ++ " was found!" }
-
-data Prerequisite = Prerequisite
-    {
-        pCourseID :: Int,
-        prerequisiteID :: Int
-    } deriving (Eq, Show, Generic)
-
-instance ToJSON Prerequisite
 
 dummyPrerequisites :: [Prerequisite]
 dummyPrerequisites = 
@@ -122,4 +122,4 @@ coursesApi :: Proxy CoursesAPI
 coursesApi = Proxy
 
 appCourses :: Application
-appCourses = serve coursesApi server
+appCourses = simpleCors $ serve coursesApi server

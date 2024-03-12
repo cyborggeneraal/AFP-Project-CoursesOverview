@@ -77,7 +77,8 @@ library
         time,
         aeson,
         wai,
-        bytestring
+        bytestring,
+        wai-cors
 
     -- Directories containing source files.
     hs-source-dirs:   src
