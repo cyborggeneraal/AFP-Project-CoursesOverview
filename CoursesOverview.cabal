@@ -79,7 +79,8 @@ library
         wai,
         bytestring,
         servant-swagger,
-        swagger2
+        swagger2,
+        wai-cors
 
     -- Directories containing source files.
     hs-source-dirs:   src

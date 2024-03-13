@@ -13,6 +13,8 @@ import Data.Swagger
 import Data.List (find)
 import Data.ByteString.Lazy.Char8 (pack)
 
+import Network.Wai.Middleware.Cors
+
 coursesAPI :: Proxy CoursesAPI
 coursesAPI = Proxy
 
@@ -135,4 +137,4 @@ coursesApi :: Proxy API
 coursesApi = Proxy
 
 appCourses :: Application
-appCourses = serve coursesApi server
+appCourses = simpleCors $ serve coursesApi server
