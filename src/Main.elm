@@ -1,17 +1,22 @@
 module Main exposing (..)
 
+import Url
 import Browser
 import Html exposing (Html, div, text, table, thead, tr, th, tbody, td)
-import Html.Attributes exposing (style)
 import Http
-import Json.Decode as Decode exposing (Decoder, field, int, string, list, map6)
+import Json.Decode as Decode exposing (Decoder, field)
 import Html exposing (button)
 import Html.Events exposing (onClick)
+import Html exposing (input)
+import Html.Attributes exposing (type_)
+import Html.Attributes exposing (placeholder)
+import Html.Events exposing (onInput)
+import Html.Attributes exposing (value)
 
 type alias Course =
     { term : Int
     , timeSlot : String
-    , courseID : Int
+    , courseID : String
     , level : String
     , ecName : String
     , capacity : Int
@@ -20,20 +25,25 @@ type alias Course =
 type alias Model =
     { courses : List Course
     , error : Maybe String
+    , content : String
     }
 
 type Msg
     = FetchCourses
     | ReceiveCourses (Result Http.Error (List Course))
+    | Change String
 
 init : Model
-init = { courses = [], error = Nothing }
+init = { courses = [], error = Nothing, content = "" }
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
+        Change newContent ->
+            ({ model | content = newContent }, fetchCoursesByID newContent)
+
         FetchCourses ->
-            (model, fetchCourses)
+            ({model | content = ""}, fetchCourses)
 
         ReceiveCourses result ->
             case result of
@@ -50,6 +60,13 @@ fetchCourses =
         , expect = Http.expectJson ReceiveCourses coursesDecoder
         }
 
+fetchCoursesByID : String -> Cmd Msg
+fetchCoursesByID search =
+    Http.get
+        { url = "http://localhost:8081/courses/" ++ Url.percentEncode search
+        , expect = Http.expectJson ReceiveCourses coursesDecoder
+        }
+
 coursesDecoder : Decoder (List Course)
 coursesDecoder =
     Decode.list courseDecoder
@@ -59,7 +76,7 @@ courseDecoder =
     Decode.map6 Course
         (field "term" Decode.int)
         (field "timeSlot" Decode.string)
-        (field "courseID" Decode.int)
+        (field "courseID" Decode.string)
         (field "level" Decode.string)
         (field "ecName" Decode.string)
         (field "capacity" Decode.int)
@@ -67,7 +84,8 @@ courseDecoder =
 view : Model -> Html Msg
 view model =
     div []
-        [ button [ onClick FetchCourses ] [ text "Fetch Courses" ]
+        [ input [ type_ "text", placeholder "Search", value model.content, onInput Change ] []
+        , button [ onClick FetchCourses ] [ text "Fetch Courses" ]
         , table []
             [ thead []
                 [ tr []
@@ -79,20 +97,26 @@ view model =
                     , th [] [ text "Capacity" ]
                     ]
                 ]
-            , tbody [] (List.map courseRow model.courses)
+            , tbody [] ( courseRows model.courses)
             ]
         ]
 
-courseRow : Course -> Html Msg
+courseRows : List Course -> List (Html Msg)
+courseRows courses =
+    List.concatMap courseRow courses
+
+courseRow : Course -> List (Html Msg)
 courseRow course =
-    tr []
-        [ td [] [ text (String.fromInt course.term) ]
+    [ tr []
+        [ td [] [ text (String.fromInt course.term)]
         , td [] [ text course.timeSlot ]
-        , td [] [ text (String.fromInt course.courseID) ]
+        , td [] [ text course.courseID ]
         , td [] [ text course.level ]
         , td [] [ text course.ecName ]
         , td [] [ text (String.fromInt course.capacity) ]
         ]
+    ]
+
 
 main : Program () Model Msg
 main =
