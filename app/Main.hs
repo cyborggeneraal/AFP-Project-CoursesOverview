@@ -1,5 +1,4 @@
 module Main where
-
 import ApiCourses(appCourses)
 import Network.Wai.Handler.Warp
 

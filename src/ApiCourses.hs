@@ -8,52 +8,12 @@ module ApiCourses where
 
 import Servant
 import Data.List (find)
-import GHC.Generics
-import Data.Aeson
 import Network.Wai.Middleware.Cors
 import Data.List (isPrefixOf)
+import Types
 
-
-data Course = Course
-    {
-        term :: Int
-    ,   timeSlot :: String
-    ,   courseID :: String
-    ,   level :: String
-    ,   ecName :: String
-    ,   capacity :: Int
-    } deriving (Eq, Show, Generic)
-
-instance ToJSON Course
-
-data Prerequisite = Prerequisite
-    {
-        pCourseID :: String,
-        prerequisiteID :: String
-    } deriving (Eq, Show, Generic)
-
-type CoursesAPI =
-  "courses" :> Get '[JSON] [Course]                   
-  :<|> "courses" :> Capture "courseID" String :> Get '[JSON] [Course]
-  :<|> "courses" :> Capture "courseID" String :> "prereq" :> Get '[JSON] [Course]
-
-dummyCourses :: [Course]
-dummyCourses =
-    [ Course { term = 1
-             , timeSlot = "AB"
-             , courseID = "101"
-             , level = "Bachelor"
-             , ecName = "Functional Programming"
-             , capacity = 30
-             }
-    , Course { term = 2
-             , timeSlot = "C"
-             , courseID = "201"
-             , level = "Master"
-             , ecName = "Advanced Functional Programming"
-             , capacity = 25
-             }
-    ]
+-- The Courses API is moved to the bottom of the file, so it could be displayed
+-- alongside the server implementation and the handlers.
 
 -- | Given a course ID, return the course with that ID, if it exists
 -- Note that this method matches by the whole courseID, not by a prefix
@@ -81,21 +41,6 @@ getCourseHandler courseId =
         Nothing                 -> return []
         Just course             -> return [course]
 
-dummyPrerequisites :: [Prerequisite]
-dummyPrerequisites = 
-        [ Prerequisite { 
-            pCourseID = "201",
-            prerequisiteID = "101"
-            }
-        ]
-
-getPrereqs :: String -> [Prerequisite] -> Maybe [Prerequisite]
-getPrereqs targetCourseID prerequisites =
-    let prereqs = filter (\prereq -> pCourseID prereq == targetCourseID) prerequisites
-    in case prereqs of
-        []                      -> Nothing
-        _                       -> Just prereqs
-
 getCoursesFromPrerequisites :: String -> [Prerequisite] -> [Course] -> [Course]
 getCoursesFromPrerequisites targetCourseID prerequisites courses =
     [course | prereq <- prerequisites, course <- courses, pCourseID prereq == targetCourseID, courseID course == prerequisiteID prereq]
@@ -107,10 +52,35 @@ getPrereqsHandler courseId =
     else 
         return []
 
+getUserHandler :: String -> Handler User
+getUserHandler nameUser = 
+    case [user | user <- users, name user == nameUser] of
+        [] -> throwError err404
+        (x:_) -> return x
+
+getCoursesFromCTEntity :: String -> [CoursesTaken] -> [Course] -> [Course]
+getCoursesFromCTEntity targetUser coursesTaken courses = 
+    [course | courseTaken <- coursesTaken, course <- courses, userName courseTaken == targetUser, takenCourseID courseTaken == courseID course]
+
+getUserCoursesHandler :: String -> Handler [Course]
+getUserCoursesHandler nameUser = 
+    return $ getCoursesFromCTEntity nameUser dummyCoursesTaken dummyCourses
+
+type CoursesAPI =
+  "courses" :> Get '[JSON] [Course]                   
+  :<|> "courses" :> Capture "courseID" String :> Get '[JSON] [Course]
+  :<|> "courses" :> Capture "courseID" String :> "prereq" :> Get '[JSON] [Course]
+  :<|> "users" :> Get '[JSON] [User]
+  :<|> "users" :> Capture "name" String :> Get '[JSON] User
+  :<|> "users" :> Capture "name" String :> "courses" :> Get '[JSON] [Course]
+
 server :: Server CoursesAPI
 server = getAllCoursesHandler :<|>
             getCourseHandler  :<|>
-            getPrereqsHandler
+            getPrereqsHandler :<|>
+            return users :<|>
+            getUserHandler :<|>
+            getUserCoursesHandler
 
 coursesApi :: Proxy CoursesAPI
 coursesApi = Proxy
