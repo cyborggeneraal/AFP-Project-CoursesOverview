@@ -5,9 +5,11 @@ module Main (main) where
 import ApiCourses (appCourses, dummyCourses)
 import Test.Hspec
 import Test.Hspec.Wai
+import Data.Aeson (toJSON)
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Control.Concurrent as C
 import Control.Exception (bracket)
+import Data.ByteString.Lazy.UTF8
 
 main :: IO ()
 main = hspec spec
@@ -28,15 +30,14 @@ businessLogicSpec =
         with (pure $ appCourses) $ do
             describe "GET /courses" $ do
                 it "should get dummy courses" $
-                  get "/courses" `shouldRespondWith` dummyCourses 
-    
-    -- withUserApp $ do
-    --     let createUser = client (Proxy :: Proxy CoursesAPI)
-    --     baseUrl <- runIO $ parseBaseUrl "http://localhost"
-    --     manager <- runIO $ newManager defaultManagerSettings
-    --     let clientEnv port = mkClientEnv manager undefined
+                  get "/courses" `shouldRespondWith` 200
+            describe "GET /courses/course_id" $ do
+                it "should get a course" $
+                  get "/courses/101" `shouldRespondWith` 200
+                it "should get an empty list" $ do
+                  get "/courses/105" `shouldRespondWith` 200
 
-    --     describe "GET /courses" $ do
-    --         it "should get courses" $ \port -> do
-    --             result <- runClientM getAllCoursesHandler (clientEnv port)
-    --             result `shouldBe` (Right dummyCourses)
+matchTest :: [a] -> Body -> Maybe String 
+matchTest _ body
+    | toString body == show (toJSON dummyCourses) = Nothing
+    | otherwise = Just "Error"
