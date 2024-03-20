@@ -8,7 +8,7 @@ module Types where
 import GHC.Generics
 import Data.Aeson
 import Data.Time
-import Data.Set as Set (Set, fromList) 
+import Data.Set as Set (Set, fromList, toList) 
 
 data Course = Course
     {
@@ -18,7 +18,7 @@ data Course = Course
     ,   level :: Level
     ,   ecName :: String
     ,   capacity :: Int
-    } deriving (Eq, Show, Generic)
+    } deriving (Show, Generic)
 
 data Level = Bachelor | Master | PhD
     deriving (Eq, Show, Generic)
@@ -30,12 +30,17 @@ data TS = A | B | C | D
     deriving (Eq, Show, Generic, Ord)
 
 type CourseID = String
-type TimeSlot = Set.Set TS
+data TimeSlot = TS (Set.Set TS)
+
+instance Show TimeSlot where
+    show (TS ts) = foldr (\x acc -> show x ++ acc) "" (Set.toList ts)
 
 instance ToJSON Level
 instance ToJSON Course
 instance ToJSON Term
 instance ToJSON TS
+instance ToJSON TimeSlot where
+    toJSON (TS ts) = toJSON $ foldr (\x acc -> show x ++ acc) "" (Set.toList ts)
 
 data Prerequisite = Prerequisite
     {
@@ -72,14 +77,14 @@ users =
 dummyCourses :: [Course]
 dummyCourses =
     [ Course { term = S1
-             , timeSlot = Set.fromList [A, B]
+             , timeSlot = TS $ Set.fromList [A, B]
              , courseID = "101"
              , level = Bachelor
              , ecName = "Functional Programming"
              , capacity = 30
              }
     , Course { term = S2
-             , timeSlot = Set.fromList [A, B]
+             , timeSlot = TS $ Set.fromList [A, B]
              , courseID = "201"
              , level = Master
              , ecName = "Advanced Functional Programming"

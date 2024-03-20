@@ -21,7 +21,7 @@ type alias Login =
     }
 
 type alias Course = 
-    {   term : Int
+    {   term : String
         , timeSlot : String
         , courseID : String
         , level : String
@@ -179,7 +179,7 @@ coursesDecoder =
 courseDecoder : Decoder Course
 courseDecoder =
     Decode.map7 Course
-        (field "term" Decode.int)
+        (field "term" Decode.string)
         (field "timeSlot" Decode.string)
         (field "courseID" Decode.string)
         (field "level" Decode.string)
@@ -238,7 +238,7 @@ courseRows courses =
 courseRow : Course -> List (Html Msg)
 courseRow course =
     [ tr [onClick (FetchPrerequisites course.courseID)]
-        [ td [] [ text (String.fromInt course.term)]
+        [ td [] [ text (course.term)]
         , td [] [ text course.timeSlot ]
         , td [] [ text course.courseID ]
         , td [] [ text course.level ]
@@ -255,7 +255,7 @@ prereqRows prerequisites =
 prereqRow : Course -> List (Html Msg)
 prereqRow course =
     [ tr []
-        [ td [] [ text (String.fromInt course.term)]
+        [ td [] [ text (course.term)]
         , td [] [ text course.courseID ]
         , td [] [ text course.level ]
         , td [] [ text course.ecName ]
