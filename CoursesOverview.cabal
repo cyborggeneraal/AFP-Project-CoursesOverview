@@ -79,7 +79,8 @@ library
         aeson,
         wai,
         bytestring,
-        wai-cors
+        wai-cors,
+        containers
 
     -- Directories containing source files.
     hs-source-dirs:   src

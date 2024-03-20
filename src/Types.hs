@@ -8,30 +8,45 @@ module Types where
 import GHC.Generics
 import Data.Aeson
 import Data.Time
+import Data.Set as Set (Set, fromList) 
 
 data Course = Course
     {
-        term :: Int
-    ,   timeSlot :: String
-    ,   courseID :: String
-    ,   level :: String
+        courseID :: CourseID
+    ,   term :: Term
+    ,   timeSlot :: TimeSlot
+    ,   level :: Level
     ,   ecName :: String
     ,   capacity :: Int
+    } deriving (Eq, Show, Generic)
 
-        } deriving (Eq, Show, Generic)
+data Level = Bachelor | Master | PhD
+    deriving (Eq, Show, Generic)
 
+data Term = B1 | B2 | B3 | B4 | S1 | S2
+    deriving (Eq, Show, Generic)
+
+data TS = A | B | C | D
+    deriving (Eq, Show, Generic, Ord)
+
+type CourseID = String
+type TimeSlot = Set.Set TS
+
+instance ToJSON Level
 instance ToJSON Course
+instance ToJSON Term
+instance ToJSON TS
 
 data Prerequisite = Prerequisite
     {
-        pCourseID :: String,
-        prerequisiteID :: String
+        pCourseID :: CourseID,
+        prerequisiteID :: CourseID
     } deriving (Eq, Show, Generic)
 
 data CoursesTaken = CoursesTaken
     {
         userName :: String,
-        takenCourseID :: String
+        takenCourseID :: CourseID
     } deriving (Eq, Show, Generic)
 
 instance ToJSON CoursesTaken
@@ -56,17 +71,17 @@ users =
 
 dummyCourses :: [Course]
 dummyCourses =
-    [ Course { term = 1
-             , timeSlot = "AB"
+    [ Course { term = S1
+             , timeSlot = Set.fromList [A, B]
              , courseID = "101"
-             , level = "Bachelor"
+             , level = Bachelor
              , ecName = "Functional Programming"
              , capacity = 30
              }
-    , Course { term = 2
-             , timeSlot = "C"
+    , Course { term = S2
+             , timeSlot = Set.fromList [A, B]
              , courseID = "201"
-             , level = "Master"
+             , level = Master
              , ecName = "Advanced Functional Programming"
              , capacity = 25
              }
