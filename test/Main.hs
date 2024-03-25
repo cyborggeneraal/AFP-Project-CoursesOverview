@@ -5,11 +5,11 @@ module Main (main) where
 import ApiCourses (appCourses, dummyCourses)
 import Test.Hspec
 import Test.Hspec.Wai
-import Data.Aeson (toJSON)
+import Data.Aeson (toJSON, Value, decode)
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Control.Concurrent as C
 import Control.Exception (bracket)
-import Data.ByteString.Lazy.UTF8
+import Data.ByteString.Lazy.UTF8 (toString)
 
 main :: IO ()
 main = hspec spec
@@ -30,14 +30,14 @@ businessLogicSpec =
         with (pure $ appCourses) $ do
             describe "GET /courses" $ do
                 it "should get dummy courses" $
-                  get "/courses" `shouldRespondWith` 200
+                  get "/courses" `shouldRespondWith` ResponseMatcher 200 [] (MatchBody matchDummyCourses)
             describe "GET /courses/course_id" $ do
                 it "should get a course" $
                   get "/courses/101" `shouldRespondWith` 200
                 it "should get an empty list" $ do
                   get "/courses/105" `shouldRespondWith` 200
 
-matchTest :: [a] -> Body -> Maybe String 
-matchTest _ body
-    | toString body == show (toJSON dummyCourses) = Nothing
-    | otherwise = Just "Error"
+matchDummyCourses :: [a] -> Body -> Maybe String 
+matchDummyCourses _ body = case (decode body :: Maybe Value) of
+    Just val | val == (toJSON dummyCourses) -> Nothing
+    _ -> Just $ show (toJSON (toString body))
