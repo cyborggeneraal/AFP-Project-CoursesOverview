@@ -144,6 +144,4 @@ test-suite CoursesOverview-test
         servant-server,
         servant-client,
         http-client,
-        utf8-string,
-        aeson,
-        json
+        aeson
