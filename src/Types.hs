@@ -20,7 +20,7 @@ data Course = Course
     ,   level :: Level
     ,   ecName :: String
     ,   capacity :: Int
-    } deriving (Show, Generic)
+    } deriving (Eq, Show, Generic)
 
 data Level = Bachelor | Master | PhD
     deriving (Eq, Show, Generic)
@@ -93,6 +93,19 @@ users =
     , User "Albert Einstein" 136 "ae@mc2.org"         (fromGregorian 1905 12 1)
     ]
 
+-- data Track = Track 
+--     { trackName :: String
+--     , trackID :: String
+--     } deriving (Eq, Show, Generic)
+
+instance ToJSON Track
+
+data CourseTrack = CourseTrack
+    { cID :: String
+    , tID :: String
+    } deriving (Eq, Show, Generic)
+
+instance ToJSON CourseTrack
 
 dummyCourses :: [Course]
 dummyCourses =
@@ -109,6 +122,13 @@ dummyCourses =
              , level = Master
              , ecName = "Advanced Functional Programming"
              , capacity = 25
+             }
+    , Course { term = 2
+             , timeSlot = "B"
+             , courseID = "202"
+             , level = "Master"
+             , ecName = "Advanced Algorithms"
+             , capacity = 20
              }
     ]
 
