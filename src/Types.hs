@@ -17,7 +17,6 @@ data Course = Course
     ,   level :: String
     ,   ecName :: String
     ,   capacity :: Int
-
         } deriving (Eq, Show, Generic)
 
 instance ToJSON Course
@@ -53,6 +52,19 @@ users =
     , User "Albert Einstein" 136 "ae@mc2.org"         (fromGregorian 1905 12 1)
     ]
 
+data Track = Track 
+    { trackName :: String
+    , trackID :: String
+    } deriving (Eq, Show, Generic)
+
+instance ToJSON Track
+
+data CourseTrack = CourseTrack
+    { cID :: String
+    , tID :: String
+    } deriving (Eq, Show, Generic)
+
+instance ToJSON CourseTrack
 
 dummyCourses :: [Course]
 dummyCourses =
@@ -70,6 +82,13 @@ dummyCourses =
              , ecName = "Advanced Functional Programming"
              , capacity = 25
              }
+    , Course { term = 2
+             , timeSlot = "B"
+             , courseID = "202"
+             , level = "Master"
+             , ecName = "Advanced Algorithms"
+             , capacity = 20
+             }
     ]
 
 dummyPrerequisites :: [Prerequisite]
@@ -85,5 +104,37 @@ dummyCoursesTaken =
     [ CoursesTaken {
         userName = "IsaacNewton",
         takenCourseID = "101"
+    }
+    ]
+
+dummyTracks :: [Track]
+dummyTracks = 
+    [ Track {
+        trackName = "Programming Technology",
+        trackID = "1"
+    }
+    , Track {
+        trackName = "Algorithm Design and Analysis",
+        trackID = "2"
+    }
+    , Track {
+        trackName = "Operations Research",
+        trackID = "3"
+    }
+    ]
+
+dummyCoursesTracks :: [CourseTrack]
+dummyCoursesTracks = 
+    [ CourseTrack {
+        cID = "101",
+        tID = "1"
+    }
+    , CourseTrack {
+        cID = "201",
+        tID = "1"
+    }
+    , CourseTrack {
+        cID = "202",
+        tID = "2"
     }
     ]
