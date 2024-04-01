@@ -46,6 +46,18 @@ businessLogicSpec =
             describe "GET /users" $ do
                 it "should return all users" $
                   get "/users" `shouldRespondWith` 200 {matchBody = matchAllUsers}
+            describe "GET /users/name" $ do
+                it "should return isaac newton" $
+                  get "/users/IsaacNewton" `shouldRespondWith` 200 {matchBody = matchIsaac}
+                it "should return error" $
+                  get "/users/Hamilton" `shouldRespondWith` 404
+            describe "GET /users/name/courses" $ do
+                it "should return no courses" $
+                  get "/users/Albert Einstein/courses" `shouldRespondWith` 200 {matchBody = matchEmptyList}
+                it "should return 101" $
+                  get "/users/IsaacNewton/courses" `shouldRespondWith` 200 {matchBody = matchCourse101} 
+                it "should return no courses" $
+                  get "/users/Hamilton/courses" `shouldRespondWith` 200 {matchBody = matchEmptyList}
 
 matchValue :: Value -> [a] -> Body -> Maybe String
 matchValue v _ body = case (decode body :: Maybe Value) of
@@ -66,3 +78,6 @@ matchEmptyList = matchBodyValue (toJSON ([] :: [String]))
 
 matchAllUsers :: MatchBody
 matchAllUsers = matchBodyValue (toJSON users)
+
+matchIsaac :: MatchBody
+matchIsaac = matchBodyValue (toJSON (head users))
