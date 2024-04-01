@@ -7,11 +7,64 @@
 module ApiCourses where
 
 import Servant
+import Servant.Swagger
+import GHC.Generics
+
+import Data.Aeson
+import Data.Swagger
 import Data.List (find)
 import Network.Wai.Middleware.Cors
 import Data.List (isPrefixOf)
 import Types
 
+import Network.Wai.Middleware.Cors
+
+coursesAPI :: Proxy CoursesAPI
+coursesAPI = Proxy
+
+type CoursesAPI =
+  "courses" :> Get '[JSON] [Course]                   
+  :<|> "courses" :> Capture "courseID" Int :> Get '[JSON] Course
+  :<|> "courses" :> Capture "courseID" Int :> "prereq" :> Get '[JSON] [Course]
+
+type SwaggerAPI = "API" :> Get '[JSON] Swagger
+
+type API = SwaggerAPI :<|> CoursesAPI
+
+data Course = Course
+    {
+        term :: Int
+    ,   timeSlot :: String
+    ,   courseID :: Int
+    ,   level :: String
+    ,   ecName :: String
+    ,   capacity :: Int
+    } deriving (Eq, Show, Generic)
+
+instance ToJSON Course
+
+instance ToSchema Course
+
+swaggerHandler :: Handler Swagger
+swaggerHandler = return $ toSwagger coursesAPI
+
+dummyCourses :: [Course]
+dummyCourses =
+    [ Course { term = 1
+             , timeSlot = "AB"
+             , courseID = 101
+             , level = "Bachelor"
+             , ecName = "Functional Programming"
+             , capacity = 30
+             }
+    , Course { term = 2
+             , timeSlot = "C"
+             , courseID = 201
+             , level = "Master"
+             , ecName = "Advanced Functional Programming"
+             , capacity = 25
+             }
+    ]
 -- The Courses API is moved to the bottom of the file, so it could be displayed
 -- alongside the server implementation and the handlers.
 
@@ -62,6 +115,10 @@ getCoursesFromCTEntity :: String -> [CoursesTaken] -> [Course] -> [Course]
 getCoursesFromCTEntity targetUser coursesTaken courses = 
     [course | courseTaken <- coursesTaken, course <- courses, userName courseTaken == targetUser, takenCourseID courseTaken == courseID course]
 
+server :: Server API
+server = swaggerHandler :<|> getCoursesHandler :<|> getCourseHandler :<|> getPrereqsHandler
+
+coursesApi :: Proxy API
 getUserCoursesHandler :: String -> Handler [Course]
 getUserCoursesHandler nameUser = 
     return $ getCoursesFromCTEntity nameUser dummyCoursesTaken dummyCourses

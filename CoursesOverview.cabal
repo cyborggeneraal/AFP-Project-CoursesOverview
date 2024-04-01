@@ -72,14 +72,18 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:    
-        base ^>=4.19.0.0,
+        base ^>= 4.19.0.0,
         servant-server,
         text,
         time,
         aeson,
         wai,
         bytestring,
+        swagger,
+        servant-swagger,
+        swagger2,
         wai-cors,
+        main,
         containers
 
     -- Directories containing source files.
@@ -103,7 +107,7 @@ executable CoursesOverview
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.19.0.0,
+        base ^>= 4.19.0.0,
         servant,
         CoursesOverview,
         warp
@@ -138,6 +142,7 @@ test-suite CoursesOverview-test
 
     -- Test dependencies.
     build-depends:
+        swagger
         base ^>=4.19.0.0,
         CoursesOverview,
         hspec,
@@ -147,3 +152,4 @@ test-suite CoursesOverview-test
         servant-client,
         http-client,
         aeson
+        main
