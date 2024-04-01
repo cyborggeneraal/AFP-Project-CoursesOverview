@@ -13,3 +13,9 @@ cabal run
 
 The server will run on `localhost:8081`.
 Type `localhost:8081/users` to get a result.
+
+The front-end is on `localhost:8000`.
+To run elm type
+```
+elm reactor
+```

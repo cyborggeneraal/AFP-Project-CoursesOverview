@@ -1,6 +1,8 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module ApiCourses where
 
@@ -11,7 +13,9 @@ import GHC.Generics
 import Data.Aeson
 import Data.Swagger
 import Data.List (find)
-import Data.ByteString.Lazy.Char8 (pack)
+import Network.Wai.Middleware.Cors
+import Data.List (isPrefixOf)
+import Types
 
 import Network.Wai.Middleware.Cors
 
@@ -61,79 +65,81 @@ dummyCourses =
              , capacity = 25
              }
     ]
+-- The Courses API is moved to the bottom of the file, so it could be displayed
+-- alongside the server implementation and the handlers.
 
-getCourseByID :: Int -> [Course] -> Maybe Course
+-- | Given a course ID, return the course with that ID, if it exists
+-- Note that this method matches by the whole courseID, not by a prefix
+getCourseByID :: String -> [Course] -> Maybe Course
 getCourseByID targetID courses = find (\course -> courseID course == targetID) courses
 
-courseExists :: Int -> [Course] -> Bool
+-- | Given a course ID we search if it is a prefix of any courseID in our set
+-- This method is used in the main search, the one that uses event listeners.
+getCourseByPrefixID :: String -> [Course] -> Maybe Course
+getCourseByPrefixID targetID courses = find (\course -> targetID `isPrefixOf` courseID course) courses
+
+courseExists :: String -> [Course] -> Bool
 courseExists courseId courses = 
     let course = getCourseByID courseId courses
     in case course of
         Nothing             -> False
         Just _              -> True
 
-getCoursesHandler :: Handler [Course]
-getCoursesHandler = return dummyCourses
+getAllCoursesHandler :: Handler [Course]
+getAllCoursesHandler = return dummyCourses
 
-getCourseHandler :: Int -> Handler Course
-getCourseHandler courseId = do
-    maybeCourse <- return $ getCourseByID courseId dummyCourses
-    case maybeCourse of
-        Nothing                 -> throwError courseNotFoundError
-        Just course             -> return course
+getCourseHandler :: String -> Handler [Course]
+getCourseHandler courseId = 
+    case getCourseByPrefixID courseId dummyCourses of
+        Nothing                 -> return []
+        Just course             -> return [course]
 
-    where courseNotFoundError   = err404 { errBody = pack $ "No course with ID " ++ show courseId ++ " was found!" }
-
-data Prerequisite = Prerequisite
-    {
-        pCourseID :: Int,
-        prerequisiteID :: Int
-    } deriving (Eq, Show, Generic)
-
-instance ToJSON Prerequisite
-
-dummyPrerequisites :: [Prerequisite]
-dummyPrerequisites = 
-        [ Prerequisite { 
-            pCourseID = 201,
-            prerequisiteID = 101
-            }
-        ]
-
-getPrereqs :: Int -> [Prerequisite] -> Maybe [Prerequisite]
-getPrereqs targetCourseID prerequisites =
-    let prereqs = filter (\prereq -> pCourseID prereq == targetCourseID) prerequisites
-    in case prereqs of
-        []                      -> Nothing
-        _                       -> Just prereqs
-
-getCoursesFromPrerequisites :: Int -> [Prerequisite] -> [Course] -> Maybe [Course]
+getCoursesFromPrerequisites :: String -> [Prerequisite] -> [Course] -> [Course]
 getCoursesFromPrerequisites targetCourseID prerequisites courses =
-    let prereqs = getPrereqs targetCourseID prerequisites
-    in case prereqs of
-        Nothing                 -> Nothing
-        Just filteredPrereqs    -> Just [course | prereq <- filteredPrereqs,
-                                                course <- courses,
-                                                courseID course == prerequisiteID prereq]
+    [course | prereq <- prerequisites, course <- courses, pCourseID prereq == targetCourseID, courseID course == prerequisiteID prereq]
 
-getPrereqsHandler :: Int -> Handler [Course]
+getPrereqsHandler :: String -> Handler [Course]
 getPrereqsHandler courseId = 
     if courseExists courseId dummyCourses then
-        do
-            maybeCourses <- return $ getCoursesFromPrerequisites courseId dummyPrerequisites dummyCourses
-            case maybeCourses of
-                Nothing             -> throwError prerequisiteNotFoundError
-                Just courses        -> return courses
+        return $ getCoursesFromPrerequisites courseId dummyPrerequisites dummyCourses
     else 
-        throwError courseNotFoundError
-    where 
-        courseNotFoundError         = err404 { errBody = pack $ "No course with ID " ++ show courseId ++ " was found!" }
-        prerequisiteNotFoundError   = err503 { errBody = pack $ "No prerequisites exist for course with ID: " ++ show courseId }
+        return []
+
+getUserHandler :: String -> Handler User
+getUserHandler nameUser = 
+    case [user | user <- users, name user == nameUser] of
+        [] -> throwError err404
+        (x:_) -> return x
+
+getCoursesFromCTEntity :: String -> [CoursesTaken] -> [Course] -> [Course]
+getCoursesFromCTEntity targetUser coursesTaken courses = 
+    [course | courseTaken <- coursesTaken, course <- courses, userName courseTaken == targetUser, takenCourseID courseTaken == courseID course]
 
 server :: Server API
 server = swaggerHandler :<|> getCoursesHandler :<|> getCourseHandler :<|> getPrereqsHandler
 
 coursesApi :: Proxy API
+getUserCoursesHandler :: String -> Handler [Course]
+getUserCoursesHandler nameUser = 
+    return $ getCoursesFromCTEntity nameUser dummyCoursesTaken dummyCourses
+
+type CoursesAPI =
+  "courses" :> Get '[JSON] [Course]                   
+  :<|> "courses" :> Capture "courseID" String :> Get '[JSON] [Course]
+  :<|> "courses" :> Capture "courseID" String :> "prereq" :> Get '[JSON] [Course]
+  :<|> "users" :> Get '[JSON] [User]
+  :<|> "users" :> Capture "name" String :> Get '[JSON] User
+  :<|> "users" :> Capture "name" String :> "courses" :> Get '[JSON] [Course]
+
+server :: Server CoursesAPI
+server = getAllCoursesHandler :<|>
+            getCourseHandler  :<|>
+            getPrereqsHandler :<|>
+            return users :<|>
+            getUserHandler :<|>
+            getUserCoursesHandler
+
+coursesApi :: Proxy CoursesAPI
 coursesApi = Proxy
 
 appCourses :: Application

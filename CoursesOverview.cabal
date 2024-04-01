@@ -61,7 +61,8 @@ library
     exposed-modules:  
         MyLib,
         ApiType,
-        ApiCourses
+        ApiCourses,
+        Types
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -78,9 +79,12 @@ library
         aeson,
         wai,
         bytestring,
+        swagger,
         servant-swagger,
         swagger2,
-        wai-cors
+        wai-cors,
+        main,
+        containers
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -138,5 +142,14 @@ test-suite CoursesOverview-test
 
     -- Test dependencies.
     build-depends:
-        base ^>= 4.19.0.0,
-        CoursesOverview
+        swagger
+        base ^>=4.19.0.0,
+        CoursesOverview,
+        hspec,
+        hspec-wai,
+        warp,
+        servant-server,
+        servant-client,
+        http-client,
+        aeson
+        main
