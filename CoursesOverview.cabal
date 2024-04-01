@@ -139,4 +139,11 @@ test-suite CoursesOverview-test
     -- Test dependencies.
     build-depends:
         base ^>=4.19.0.0,
-        CoursesOverview
+        CoursesOverview,
+        hspec,
+        hspec-wai,
+        warp,
+        servant-server,
+        servant-client,
+        http-client,
+        aeson
