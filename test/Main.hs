@@ -2,7 +2,8 @@
 
 module Main (main) where
 
-import ApiCourses (appCourses, dummyCourses)
+import ApiCourses (appCourses)
+import Types (dummyCourses)
 import Test.Hspec
 import Test.Hspec.Wai
 import Data.Aeson (toJSON, Value, decode)
