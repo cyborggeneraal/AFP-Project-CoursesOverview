@@ -3,7 +3,7 @@
 module Main (main) where
 
 import ApiCourses (appCourses)
-import Types (dummyCourses)
+import Types (dummyCourses, users)
 import Test.Hspec
 import Test.Hspec.Wai
 import Data.Aeson (toJSON, Value, decode)
@@ -30,31 +30,39 @@ businessLogicSpec =
         with (pure $ appCourses) $ do
             describe "GET /courses" $ do
                 it "should get dummy courses" $
-                  get "/courses" `shouldRespondWith` 200 {matchBody = MatchBody matchDummyCourses}
+                  get "/courses" `shouldRespondWith` 200 {matchBody = matchDummyCourses}
             describe "GET /courses/course_id" $ do
                 it "should get a course" $
-                  get "/courses/101" `shouldRespondWith` 200 {matchBody = MatchBody matchCourse101}
+                  get "/courses/101" `shouldRespondWith` 200 {matchBody = matchCourse101}
                 it "should get an empty list" $
-                  get "/courses/105" `shouldRespondWith` 200 {matchBody = MatchBody matchEmptyList}
+                  get "/courses/105" `shouldRespondWith` 200 {matchBody = matchEmptyList}
             describe "GET /courses/course_id/prereq" $ do
                 it "should return 101 for 201" $
-                  get "/courses/201/prereq"  `shouldRespondWith` 200 {matchBody = MatchBody matchCourse101}
+                  get "/courses/201/prereq"  `shouldRespondWith` 200 {matchBody = matchCourse101}
                 it "should return empty for 101" $
-                  get "/courses/101/prereq" `shouldRespondWith` 200 {matchBody = MatchBody matchEmptyList}
+                  get "/courses/101/prereq" `shouldRespondWith` 200 {matchBody = matchEmptyList}
                 it "should return empty for 105" $
-                  get "/courses/105/prereq" `shouldRespondWith` 200 {matchBody = MatchBody matchEmptyList}
+                  get "/courses/105/prereq" `shouldRespondWith` 200 {matchBody = matchEmptyList}
+            describe "GET /users" $ do
+                it "should return all users" $
+                  get "/users" `shouldRespondWith` 200 {matchBody = matchAllUsers}
 
-matchDummyCourses :: [a] -> Body -> Maybe String 
-matchDummyCourses _ body = case (decode body :: Maybe Value) of
-    Just val | val == (toJSON dummyCourses) -> Nothing
-    _ -> Just $ "Error"
+matchValue :: Value -> [a] -> Body -> Maybe String
+matchValue v _ body = case (decode body :: Maybe Value) of
+  Just val | val == v -> Nothing
+  _                   -> Just "Error"
 
-matchCourse101:: [a] -> Body -> Maybe String
-matchCourse101 _ body = case (decode body :: Maybe Value) of
-    Just val | val == (toJSON (take 1 dummyCourses)) -> Nothing
-    _ -> Just "Error"
+matchBodyValue :: Value -> MatchBody
+matchBodyValue v = MatchBody $ matchValue v
 
-matchEmptyList :: [a] -> Body -> Maybe String
-matchEmptyList _ body = case (decode body :: Maybe Value) of
-    Just val | val == (toJSON ([] :: [String])) -> Nothing
-    _ -> Just "Error"
+matchDummyCourses :: MatchBody
+matchDummyCourses = matchBodyValue (toJSON dummyCourses)
+
+matchCourse101:: MatchBody
+matchCourse101 = matchBodyValue (toJSON (take 1 dummyCourses))
+
+matchEmptyList :: MatchBody
+matchEmptyList = matchBodyValue (toJSON ([] :: [String]))
+
+matchAllUsers :: MatchBody
+matchAllUsers = matchBodyValue (toJSON users)
