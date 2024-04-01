@@ -79,11 +79,9 @@ library
         aeson,
         wai,
         bytestring,
-        swagger,
         servant-swagger,
         swagger2,
         wai-cors,
-        main,
         containers
 
     -- Directories containing source files.
@@ -142,7 +140,6 @@ test-suite CoursesOverview-test
 
     -- Test dependencies.
     build-depends:
-        swagger
         base ^>=4.19.0.0,
         CoursesOverview,
         hspec,
@@ -152,4 +149,3 @@ test-suite CoursesOverview-test
         servant-client,
         http-client,
         aeson
-        main

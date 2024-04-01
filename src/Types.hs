@@ -3,8 +3,13 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE InstanceSigs #-}
 module Types where
 
+import Data.Swagger (ToSchema, declareNamedSchema)
+import Data.Swagger.Internal
+import Data.Swagger.Declare
+import Data.Proxy
 import GHC.Generics
 import Data.Aeson
 import Data.Time
@@ -31,6 +36,7 @@ data TS = A | B | C | D
 
 type CourseID = String
 data TimeSlot = TS (Set.Set TS)
+    deriving (Generic)
 
 instance Show TimeSlot where
     show (TS ts) = foldr (\x acc -> show x ++ acc) "" (Set.toList ts)
@@ -41,6 +47,13 @@ instance ToJSON Term
 instance ToJSON TS
 instance ToJSON TimeSlot where
     toJSON (TS ts) = toJSON $ foldr (\x acc -> show x ++ acc) "" (Set.toList ts)
+
+instance ToSchema Term
+instance ToSchema Level
+instance ToSchema TS
+instance ToSchema TimeSlot
+
+instance ToSchema Course
 
 data Prerequisite = Prerequisite
     {
@@ -66,6 +79,8 @@ data User = User
     } deriving (Eq, Show, Generic)
 
 instance ToJSON User
+
+instance ToSchema User
 
 users :: [User]
 users =
