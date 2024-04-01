@@ -6,10 +6,7 @@
 {-# LANGUAGE InstanceSigs #-}
 module Types where
 
-import Data.Swagger (ToSchema, declareNamedSchema)
-import Data.Swagger.Internal
-import Data.Swagger.Declare
-import Data.Proxy
+import Data.Swagger (ToSchema)
 import GHC.Generics
 import Data.Aeson
 import Data.Time
