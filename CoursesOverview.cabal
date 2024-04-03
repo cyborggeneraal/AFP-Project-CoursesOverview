@@ -59,7 +59,6 @@ library
 
     -- Modules exported by the library.
     exposed-modules:  
-        MyLib,
         ApiCourses,
         Types
 
