@@ -83,18 +83,6 @@ getTrackHandler :: String -> Handler [Track]
 getTrackHandler _id = 
     return $ [track | track <- dummyTracks, trackID track == _id]
 
--- TODO: rewrite this function to use groupBy instead of nub, for some reason i could not make it work
--- ct is a single course track, c is a single course, and we are looking for all courses that are in the same track
-groupCoursesByTracks :: [CourseTrack] -> [Track] -> [Course] -> [(String, [Course])]
-groupCoursesByTracks cts ts cs = 
-    let trackIDs = nub $ map tID cts
-        groups = map (\_tid -> 
-            let tname = case [trackName t | t <- ts, trackID t == _tid] of
-                            [] -> error "Empty list"
-                            (x:_) -> x
-            in (tname, [c | ct <- cts, c <- cs, cID ct == courseID c && _tid == tID ct])) trackIDs
-    in groups
-
 getCoursesTrack :: Track -> (String, [Course])
 getCoursesTrack t = (trackName t, trackMand t ++ trackElec t)
 
