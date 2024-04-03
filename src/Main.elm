@@ -384,7 +384,7 @@ courseColumns course =
     [ td [] [ text course.courseID ]
     , td [] [ text course.ecName ]
     , td [] [ text course.level ]
-    , td [] [ text (String.fromInt course.term)]
+    , td [] [ text course.term]
     , td [] [ text course.timeSlot ]
     , td [] [ text (String.fromInt course.capacity) ]
     , td [] [ input [ type_ "checkbox", checked course.checked] [] ]

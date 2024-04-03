@@ -33,7 +33,7 @@ data TS = A | B | C | D
 
 type CourseID = String
 data TimeSlot = TS (Set.Set TS)
-    deriving (Generic)
+    deriving (Eq, Generic)
 
 instance Show TimeSlot where
     show (TS ts) = foldr (\x acc -> show x ++ acc) "" (Set.toList ts)
@@ -106,6 +106,7 @@ data CourseTrack = CourseTrack
     } deriving (Eq, Show, Generic)
 
 instance ToJSON CourseTrack
+instance ToSchema Track
 
 dummyCourses :: [Course]
 dummyCourses =
@@ -123,10 +124,10 @@ dummyCourses =
              , ecName = "Advanced Functional Programming"
              , capacity = 25
              }
-    , Course { term = 2
-             , timeSlot = "B"
+    , Course { term = S2
+             , timeSlot = TS $ Set.fromList [A]
              , courseID = "202"
-             , level = "Master"
+             , level = Master
              , ecName = "Advanced Algorithms"
              , capacity = 20
              }
@@ -148,11 +149,12 @@ dummyCoursesTaken =
     }
     ]
 
-dummyTrack :: Track
-dummyTrack = 
-    Track {
+dummyTracks :: [Track]
+dummyTracks = 
+    [Track {
         trackID = "1",
         trackName = "Programming Technology",
         trackMand = filter ((== "101") . courseID) dummyCourses,
         trackElec = filter ((== "201") . courseID) dummyCourses
-    }
+    }]
+

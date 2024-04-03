@@ -99,8 +99,11 @@ groupCoursesByTracks cts ts cs =
             in (tname, [c | ct <- cts, c <- cs, cID ct == courseID c && _tid == tID ct])) trackIDs
     in groups
 
+getCoursesTrack :: Track -> (String, [Course])
+getCoursesTrack t = (trackName t, trackMand t ++ trackElec t)
+
 getCoursesTracksHandler :: Handler [(String, [Course])]
-getCoursesTracksHandler = return $ groupCoursesByTracks dummyCoursesTracks dummyTracks dummyCourses
+getCoursesTracksHandler = return $ getCoursesTrack <$> dummyTracks
 
 type CoursesAPI =
   "courses" :> Get '[JSON] [Course]                   
@@ -125,8 +128,8 @@ server = swaggerHandler :<|>
             getTrackHandler :<|>
             getCoursesTracksHandler
             
-coursesApi :: Proxy CoursesAPI
-coursesApi = Proxy
+api :: Proxy API
+api = Proxy
 
 appCourses :: Application
-appCourses = simpleCors $ serve coursesApi server
+appCourses = simpleCors $ serve api server
