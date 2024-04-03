@@ -121,7 +121,7 @@ server = swaggerHandler :<|>
             getAllCoursesHandler :<|>
             getCourseHandler  :<|>
             getPrereqsHandler :<|>
-            getUsersHandler :<|>
+            return users :<|>
             getUserHandler :<|>
             getUserCoursesHandler :<|>
             getAllTracksHandler :<|>
