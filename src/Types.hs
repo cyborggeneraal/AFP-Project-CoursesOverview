@@ -1,9 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE InstanceSigs #-}
 module Types where
 
 import Data.Swagger (ToSchema)
@@ -32,7 +30,7 @@ data TS = A | B | C | D
     deriving (Eq, Show, Generic, Ord)
 
 type CourseID = String
-data TimeSlot = TS (Set.Set TS)
+newtype TimeSlot = TS (Set.Set TS)
     deriving (Eq, Generic)
 
 instance Show TimeSlot where
@@ -72,10 +70,11 @@ data User = User
     { name :: String
     , age :: Int
     , email :: String
-    , registration_date :: Day
+    , registeration_date :: Day
     } deriving (Eq, Show, Generic)
 
 instance ToJSON User
+instance FromJSON User
 
 instance ToSchema User
 
@@ -86,17 +85,6 @@ data Track = Track
         trackMand :: [Course],
         trackElec :: [Course]
     } deriving (Show, Generic)
-
-users :: [User]
-users =
-    [ User "IsaacNewton"     372 "isaac@newton.co.uk" (fromGregorian 1683 3 1) 
-    , User "Albert Einstein" 136 "ae@mc2.org"         (fromGregorian 1905 12 1)
-    ]
-
--- data Track = Track 
---     { trackName :: String
---     , trackID :: String
---     } deriving (Eq, Show, Generic)
 
 instance ToJSON Track
 

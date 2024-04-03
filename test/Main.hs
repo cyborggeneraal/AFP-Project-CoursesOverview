@@ -1,18 +1,50 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Main (main) where
 
 import ApiCourses (appCourses)
-import Types (dummyCourses, users)
+import Types (dummyCourses, User(User))
 import Test.Hspec
 import Test.Hspec.Wai
 import Data.Aeson (toJSON, Value, decode)
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Control.Concurrent as C
 import Control.Exception (bracket)
+import Data.Time
+
+import Database
+import Database.SQLite.Simple
+import Database.Beam
+import Database.Beam.Sqlite
+import System.Directory
 
 main :: IO ()
-main = hspec spec
+main = do
+  createTestDb
+  hspec spec
+  removeFile "test.db"
+
+dummyUsers :: [User]
+dummyUsers =
+    [ User "IsaacNewton"     372 "isaac@newton.co.uk" (fromGregorian 1683 3 1) 
+    , User "Albert Einstein" 136 "ae@mc2.org"         (fromGregorian 1905 12 1)
+    ]
+
+createTestDb :: IO ()
+createTestDb = do
+  conn <- open "test.db"
+
+  execute_ conn "DROP TABLE IF EXISTS users;"
+
+  createDatabase conn
+
+  runBeamSqlite conn $ runInsert $
+    insert (users userDb) $
+      insertValues $ userToDbUser <$> dummyUsers
 
 spec :: Spec
 spec = do
@@ -20,14 +52,14 @@ spec = do
 
 withUserApp :: IO() -> IO ()
 withUserApp action =
-    bracket (C.forkIO $ Warp.run 9999 appCourses)
+    bracket (C.forkIO $ Warp.run 9999 $ appCourses "test.db")
       C.killThread
       (const action)
 
 businessLogicSpec :: Spec
 businessLogicSpec =
     around_ withUserApp $ do
-        with (pure $ appCourses) $ do
+        with (pure $ appCourses "test.db") $ do
             describe "GET /courses" $ do
                 it "should get dummy courses" $
                   get "/courses" `shouldRespondWith` 200 {matchBody = matchDummyCourses}
@@ -77,7 +109,7 @@ matchEmptyList :: MatchBody
 matchEmptyList = matchBodyValue (toJSON ([] :: [String]))
 
 matchAllUsers :: MatchBody
-matchAllUsers = matchBodyValue (toJSON users)
+matchAllUsers = matchBodyValue (toJSON dummyUsers)
 
 matchIsaac :: MatchBody
-matchIsaac = matchBodyValue (toJSON (head users))
+matchIsaac = matchBodyValue (toJSON (head dummyUsers))

@@ -60,7 +60,8 @@ library
     -- Modules exported by the library.
     exposed-modules:  
         ApiCourses,
-        Types
+        Types,
+        Database
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -70,7 +71,7 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:    
-        base ^>= 4.19.0.0,
+        base < 4.18,
         servant-server,
         text,
         time,
@@ -80,7 +81,10 @@ library
         servant-swagger,
         swagger2,
         wai-cors,
-        containers
+        containers,
+        beam-core,
+        beam-sqlite,
+        sqlite-simple
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -103,10 +107,12 @@ executable CoursesOverview
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>= 4.19.0.0,
+        base < 4.18,
         servant,
         CoursesOverview,
-        warp
+        warp,
+        directory,
+        sqlite-simple
 
     -- Directories containing source files.
     hs-source-dirs:   app
@@ -138,12 +144,18 @@ test-suite CoursesOverview-test
 
     -- Test dependencies.
     build-depends:
-        base ^>=4.19.0.0,
+        base < 4.18,
         CoursesOverview,
+        text,
         hspec,
         hspec-wai,
         warp,
         servant-server,
         servant-client,
         http-client,
-        aeson
+        aeson,
+        sqlite-simple,
+        time,
+        beam-core,
+        beam-sqlite,
+        directory

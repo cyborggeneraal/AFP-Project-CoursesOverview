@@ -10,10 +10,10 @@ import Servant
 import Servant.Swagger
 
 import Data.Swagger (Swagger)
-import Data.List (find)
+import Data.List
 import Network.Wai.Middleware.Cors
-import Data.List (isPrefixOf)
 import Types
+import Database
 
 coursesAPI :: Proxy CoursesAPI
 coursesAPI = Proxy
@@ -55,14 +55,18 @@ getPrereqsHandler courseId =
     else 
         return []
 
-getUserHandler :: String -> Handler User
-getUserHandler nameUser = 
-    case [user | user <- users, name user == nameUser] of
+getUserHandler :: DatabasePath -> String -> Handler User
+getUserHandler p nameUser = do
+    users' <- allUsers p
+    case [user | user <- users', name user == nameUser] of
         [] -> throwError err404
         (x:_) -> return x
 
-getUsersHandler :: Handler [User]
-getUsersHandler = return users
+getUsersHandler :: DatabasePath -> Handler [User]
+getUsersHandler = allUsers
+
+createUserHandler :: DatabasePath -> User -> Handler ()
+createUserHandler p u = addDbUser p (userToDbUser u)
 
 getCoursesFromCTEntity :: String -> [CoursesTaken] -> [Course] -> [Course]
 getCoursesFromCTEntity targetUser coursesTaken courses = 
@@ -95,6 +99,7 @@ type CoursesAPI =
   :<|> "users" :> Get '[JSON] [User]
   :<|> "users" :> Capture "name" String :> Get '[JSON] User
   :<|> "users" :> Capture "name" String :> "courses" :> Get '[JSON] [Course]
+  :<|> "users" :> ReqBody '[JSON] User :> Post '[JSON] ()
   :<|> "tracks" :> Get '[JSON] [Track]
   :<|> "tracks" :> Capture "trackID" String :> Get '[JSON] [Track]
   :<|> "tracks-courses" :> Get '[JSON] [(String, [Course])]
@@ -103,14 +108,15 @@ type SwaggerAPI = "API" :> Get '[JSON] Swagger
 
 type API = SwaggerAPI :<|> CoursesAPI
 
-server :: Server API
-server = swaggerHandler :<|>
+server :: DatabasePath -> Server API
+server p = swaggerHandler :<|>
             getAllCoursesHandler :<|>
             getCourseHandler  :<|>
             getPrereqsHandler :<|>
-            return users :<|>
-            getUserHandler :<|>
+            allUsers p :<|>
+            getUserHandler p :<|>
             getUserCoursesHandler :<|>
+            createUserHandler p :<|>
             getAllTracksHandler :<|>
             getTrackHandler :<|>
             getCoursesTracksHandler
@@ -118,5 +124,5 @@ server = swaggerHandler :<|>
 api :: Proxy API
 api = Proxy
 
-appCourses :: Application
-appCourses = simpleCors $ serve api server
+appCourses :: DatabasePath -> Application
+appCourses p = simpleCors $ serve api $ server p
