@@ -13,7 +13,6 @@ import Data.Swagger (Swagger)
 import Data.List (find)
 import Network.Wai.Middleware.Cors
 import Data.List (isPrefixOf)
-import Data.List (nub)
 import Types
 
 coursesAPI :: Proxy CoursesAPI
