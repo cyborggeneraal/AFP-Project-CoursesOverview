@@ -19,10 +19,6 @@ import Types
 coursesAPI :: Proxy CoursesAPI
 coursesAPI = Proxy
 
-type SwaggerAPI = "API" :> Get '[JSON] Swagger
-
-type API = SwaggerAPI :<|> CoursesAPI
-
 swaggerHandler :: Handler Swagger
 swaggerHandler = return $ toSwagger coursesAPI
 
@@ -115,6 +111,10 @@ type CoursesAPI =
   :<|> "tracks" :> Get '[JSON] [Track]
   :<|> "tracks" :> Capture "trackID" String :> Get '[JSON] [Track]
   :<|> "tracks-courses" :> Get '[JSON] [(String, [Course])]
+
+type SwaggerAPI = "API" :> Get '[JSON] Swagger
+
+type API = SwaggerAPI :<|> CoursesAPI
 
 server :: Server API
 server = swaggerHandler :<|>
