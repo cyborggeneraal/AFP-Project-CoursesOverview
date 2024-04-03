@@ -79,6 +79,14 @@ instance ToJSON User
 
 instance ToSchema User
 
+data Track = Track
+    {
+        trackID :: String,
+        trackName :: String,
+        trackMand :: [Course],
+        trackElec :: [Course]
+    } deriving (Show, Generic)
+
 users :: [User]
 users =
     [ User "IsaacNewton"     372 "isaac@newton.co.uk" (fromGregorian 1683 3 1) 
@@ -119,3 +127,12 @@ dummyCoursesTaken =
         takenCourseID = "101"
     }
     ]
+
+dummyTrack :: Track
+dummyTrack = 
+    Track {
+        trackID = "1",
+        trackName = "Programming Technology",
+        trackMand = filter ((== "101") . courseID) dummyCourses,
+        trackElec = filter ((== "201") . courseID) dummyCourses
+    }
